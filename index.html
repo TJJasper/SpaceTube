@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tube</title>
+<style type="text/css">
+#mycanvas {
+border: 2px solid black;
+}
+</style>
+<script type="text/javascript">
+var X = 0;
+var Y = 1;
+var trans_pt = function(pt, vec){
+	return [pt[X]+vec[X], pt[Y]+vec[Y]];
+};
+var trans_poly = function(poly, vec){
+	var new_poly = [];
+	for (var i = 0; i < poly.length; i++){
+		new_poly.push(trans_pt(poly[i], vec));
+	}
+	return new_poly;
+};
+
+var scale_pt = function(pt, vec){
+	return [pt[X]*vec[X], pt[Y]*vec[Y]];
+};
+var scale_poly = function(poly, vec){
+	var new_poly = [];
+	for (var i = 0; i < poly.length; i++){
+		new_poly.push(scale_pt(poly[i], vec));
+	}
+	return new_poly;
+};
+
+var draw_poly = function(ctx, poly){
+	ctx.moveTo(poly[0][X],poly[0][Y]);
+	for (var i = 1; i < poly.length; i++){
+		ctx.lineTo(poly[i][X],poly[i][Y]);
+	}
+};
+
+var connect_polys = function(ctx, poly1, poly2){
+	for (var i = 0; i < poly1.length;  i++){
+		ctx.moveTo(poly1[i][X],poly1[i][Y]);
+		ctx.lineTo(poly2[i][X],poly2[i][Y]);
+	}
+};
+
+var midPoint = function(p1,p2){
+	return [(p1[X]+p2[X])/2, (p1[Y]+p2[Y])/2];
+};
+
+var makeTube = function(pattern){
+	var outer = scale_poly(pattern,[100,100]);
+	var inner = trans_poly(scale_poly(pattern,[10,10]),[0,-50]);
+	
+	return {
+		draw: function(ctx){
+			ctx.beginPath();
+			draw_poly(ctx,outer);
+			draw_poly(ctx,inner);
+			connect_polys(ctx,outer,inner);
+	
+			ctx.stroke();
+		},
+		length: outer.length - 1,
+		// returns the endpoints for the nth segment around the tube edge
+		rim: function(n){
+			return [outer[n],outer[n + 1]];
+		},
+		// give the index of a tube section (n) and a distance (dist) between 0 and 1
+		// returns a point dist along the center line of the tube section
+		pos: function(n, dist){
+			var outer_seg = [outer[n],outer[n + 1]];
+			var inner_seg = [inner[n],inner[n + 1]];
+			var m1 = midPoint(outer_seg[X], outer_seg[Y]);
+			var m2 = midPoint(inner_seg[X], inner_seg[Y]);
+			
+			return [
+				m1[X] + dist * (m2[X]-m1[X]),
+				m1[Y] + dist * (m2[Y]-m1[Y])
+				];
+			
+			
+		},
+	};
+};
+
+var mod = function(x,y){
+return ((x%y)+y)%y;
+};
+
+var start = function(){
+
+	var canvas = document.getElementById('mycanvas');
+	var ctx = canvas.getContext('2d');
+	ctx.translate(canvas.width/2,canvas.height/2);
+	ctx.scale(1,-1);
+
+	var z = [[2,1],[2,0],[2,-1],[1,-1],[1,-2],[0,-2],[-1,-2],[-1,-1],[-2,-1],[-2,0],[-2,1],[-1,1],[-1,2],[0,2],[1,2],[1,1],[2,1]];
+
+	var tube = makeTube(z);
+	var pos = 2;
+	var dist = 0;
+	var mindist = 0;
+	var maxdist = 1;
+	var distdiff = 0.05;
+	
+	var shipimg=document.getElementById("ship");
+	
+	var draw = function(){
+	
+	ctx.clearRect(canvas.width/-2, canvas.height/2, canvas.width, -canvas.height);
+	tube.draw(ctx);
+	var position = tube.pos(mod(pos, tube.length), dist);
+	
+	ctx.drawImage(shipimg,position[0]-25, position[1]-25,50,50)
+	
+	};
+    window.setInterval(draw, 20);
+    window.addEventListener('keydown',function(e){
+    	if (e.keyCode == "37"){
+    		pos--;
+    	} else if (e.keyCode == "39"){
+    		pos++;
+    	} else if (e.keyCode == "38"){
+    		dist += distdiff;
+    		dist = Math.min(dist, maxdist);
+    	} else if (e.keyCode == "40"){
+    	    dist -= distdiff;
+    	    dist = Math.max(dist, mindist);
+    	} else {
+    	    //console.log(e.keyCode);
+    	}
+    	e.stopPropagation();
+    	return false;
+    },false);
+    
+
+};
+
+window.addEventListener('load', start);
+
+var eat_snails=function(howmany){
+    console.log('barf');
+    //return 0;
+};
+
+var double=function(n){
+   return n*2;
+};
+
+var square=function(m){
+	return m*m;
+};
+
+var to_C=function(f){
+	return (f - 32) * 5/9;
+	};
+	
+var to_F=function(c){
+	return c * 9/5 + 32;
+	};
+
+var salestax=function(price){
+   return 7/100*price;
+   };
+
+var hyp=function(A,B){
+   return Math.sqrt(Math.pow(A,2)+Math.pow(B,2));
+};
+</script></head>
+<body>
+<canvas id="mycanvas" width="500" height="650"> </canvas>
+
+<div style="display:none;">
+  <img id="ship" src="spaceship.png"
+       width="300" height="300">
+</div>
+</body>
+</html>
