@@ -57,6 +57,14 @@ var distance = function(p1,p2){
 	return Math.sqrt(Math.pow(y,2)+Math.pow(x,2));
 };
 
+function drawRotatedImage(ctx, image, x, y,dest_w, dest_h, angle) {
+	ctx.save();
+	ctx.translate(x, y);
+	ctx.rotate(angle);
+	ctx.drawImage(image, -(dest_w/2), -(dest_h/2), dest_w, dest_h);
+	ctx.restore();
+}
+
 var makeTube = function(pattern){
 	var outer = scale_poly(pattern,[100,100]);
 	var inner = trans_poly(scale_poly(pattern,[10,10]),[0,-50]);
