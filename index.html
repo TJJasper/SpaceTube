@@ -51,6 +51,12 @@ var midPoint = function(p1,p2){
 	return [(p1[X]+p2[X])/2, (p1[Y]+p2[Y])/2];
 };
 
+var distance = function(p1,p2){
+	var x = p2[X]-p1[X];
+	var y = p2[Y]-p1[Y];
+	return Math.sqrt(Math.pow(y,2)+Math.pow(x,2));
+};
+
 var makeTube = function(pattern){
 	var outer = scale_poly(pattern,[100,100]);
 	var inner = trans_poly(scale_poly(pattern,[10,10]),[0,-50]);
