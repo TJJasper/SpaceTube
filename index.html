@@ -57,13 +57,13 @@ var distance = function(p1,p2){
 	return Math.sqrt(Math.pow(y,2)+Math.pow(x,2));
 };
 
-function drawRotatedImage(ctx, image, x, y,dest_w, dest_h, angle) {
+var drawRotatedImage = function(ctx, image, x, y,dest_w, dest_h, angle) {
 	ctx.save();
 	ctx.translate(x, y);
 	ctx.rotate(angle);
 	ctx.drawImage(image, -(dest_w/2), -(dest_h/2), dest_w, dest_h);
 	ctx.restore();
-}
+};
 
 var makeTube = function(pattern){
 	var outer = scale_poly(pattern,[100,100]);
@@ -90,10 +90,16 @@ var makeTube = function(pattern){
 			var inner_seg = [inner[n],inner[n + 1]];
 			var m1 = midPoint(outer_seg[X], outer_seg[Y]);
 			var m2 = midPoint(inner_seg[X], inner_seg[Y]);
+			var angle = Math.atan2(outer_seg[1][Y] - outer_seg[0][Y], outer_seg[1][X] - outer_seg[0][X]);
+			var outer_dist = distance(outer_seg[0], outer_seg[1]);
+			var inner_dist = distance(inner_seg[0], inner_seg[1]);
+			var scale = (inner_dist + (outer_dist - inner_dist) * (1-dist))/outer_dist;
 			
 			return [
 				m1[X] + dist * (m2[X]-m1[X]),
-				m1[Y] + dist * (m2[Y]-m1[Y])
+				m1[Y] + dist * (m2[Y]-m1[Y]),
+				angle,
+				scale
 				];
 			
 			
@@ -129,7 +135,7 @@ var start = function(){
 	tube.draw(ctx);
 	var position = tube.pos(mod(pos, tube.length), dist);
 	
-	ctx.drawImage(shipimg,position[0]-25, position[1]-25,50,50)
+	drawRotatedImage(ctx, shipimg, position[0], position[1], 50*position[3], 50*position[3], position[2]);
 	
 	};
     window.setInterval(draw, 20);
