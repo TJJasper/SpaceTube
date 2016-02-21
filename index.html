@@ -111,6 +111,61 @@ var mod = function(x,y){
 return ((x%y)+y)%y;
 };
 
+var makeGroup = function(){
+	var group = [];
+	var obj = {
+		push: function(x){
+			group.push(x);
+		},
+		clean:function(){
+			var temp = [];
+			for(var i=0; i<group.length; i++){
+				if (group[i].active()){
+					temp.push(group[i]);
+				}
+			}
+			group = temp;
+		},
+		draw: function(ctx){
+			for(var i=0; i<group.length; i++){
+				group[i].draw(ctx);
+			}
+		},
+		update: function(){
+			for(var i=0; i<group.length; i++){
+				group[i].update();
+			}
+		},
+		
+	};
+	return obj;
+};
+
+var makeBullet = function(tube, pos, dist){
+	var radius = 2;
+	var position = tube.pos(mod(pos, tube.length), dist);
+	var distdiff = 0.05;
+	var active = true;
+	var bullet = {
+		update: function(){
+			dist += distdiff;
+			position = tube.pos(mod(pos, tube.length), dist);
+			if (dist > 1){
+				active = false;
+			}
+		},
+		draw: function(ctx){
+			ctx.beginPath();
+			ctx.ellipse(position[0], position[1], radius, radius, 0, 0, 2 * Math.PI);
+			ctx.stroke();
+		},
+		active: function(){
+			return active;
+		},
+	};
+	return bullet;
+};
+
 var start = function(){
 
 	var canvas = document.getElementById('mycanvas');
@@ -119,7 +174,9 @@ var start = function(){
 	ctx.scale(1,-1);
 
 	var z = [[2,1],[2,0],[2,-1],[1,-1],[1,-2],[0,-2],[-1,-2],[-1,-1],[-2,-1],[-2,0],[-2,1],[-1,1],[-1,2],[0,2],[1,2],[1,1],[2,1]];
-
+	
+	var bullets = makeGroup();
+	
 	var tube = makeTube(z);
 	var pos = 2;
 	var dist = 0;
@@ -133,8 +190,12 @@ var start = function(){
 	
 	ctx.clearRect(canvas.width/-2, canvas.height/2, canvas.width, -canvas.height);
 	tube.draw(ctx);
-	var position = tube.pos(mod(pos, tube.length), dist);
 	
+	bullets.update();
+	bullets.clean();
+	bullets.draw(ctx);
+	
+	var position = tube.pos(mod(pos, tube.length), dist);
 	drawRotatedImage(ctx, shipimg, position[0], position[1], 50*position[3], 50*position[3], position[2]);
 	
 	};
@@ -150,6 +211,8 @@ var start = function(){
     	} else if (e.keyCode == "40"){
     	    dist -= distdiff;
     	    dist = Math.max(dist, mindist);
+    	} else if (e.keyCode == "32"){
+    		bullets.push(makeBullet(tube, pos, dist));
     	} else {
     	    //console.log(e.keyCode);
     	}
